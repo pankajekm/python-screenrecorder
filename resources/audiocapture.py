@@ -20,6 +20,7 @@ class CaptureAudio:
             #todo: apply end_record event here
             #along with stream.stop_stream()
 
+    @file_saving
     def saveAudioFile(self, filename):
         wavfile = wave.open(filename, 'wb')
         wavfile.setnchannels(self.CHANNELS)
