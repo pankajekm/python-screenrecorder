@@ -1,30 +1,33 @@
 import pyaudio
 import wave
- 
-FORMAT = pyaudio.paInt16
-CHANNELS = 2
-RATE = 44100
-CHUNK = 1024
-RECORD_SECONDS = 5
-WAVE_OUTPUT_FILENAME = "file.wav"
- 
-audio = pyaudio.PyAudio()
- 
-stream = audio.open(format=FORMAT, channels=CHANNELS,
-                rate=RATE, input=True,
-                frames_per_buffer=CHUNK)
-frames = []
- 
-for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-    data = stream.read(CHUNK)
-    frames.append(data)
-stream.stop_stream()
-stream.close()
-audio.terminate()
- 
-waveFile = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-waveFile.setnchannels(CHANNELS)
-waveFile.setsampwidth(audio.get_sample_size(FORMAT))
-waveFile.setframerate(RATE)
-waveFile.writeframes(b''.join(frames))
-waveFile.close()
+from decor import *
+
+class CaptureAudio:
+    def __init__(self):
+        self.FORMAT=pyaudio.paInt16
+        self.CHANNELS = 2
+        self.RATE = 44100
+        self.CHUNK = 1024
+        self.audio = pyaudio.PyAudio()
+        self.frames = []
+
+    @audio_record_thread    
+    def startRecording(self):
+        stream = self.audio.open(format=self.FORMAT, channels=self.CHANNELS, rate=self.RATE, input=True, frames_per_buffer=self.CHUNK)            
+        while(True):
+            data = stream.read(self.CHUNK)
+            self.frames.append(data)
+            #todo: apply end_record event here
+            #along with stream.stop_stream()
+
+    def saveAudioFile(self, filename):
+        wavfile = wave.open(filename, 'wb')
+        wavfile.setnchannels(self.CHANNELS)
+        wavfile.setsampwidth(self.audio.get_sample_size(self.FORMAT))
+        wavfile.setframerate(self.RATE)
+        wavfile.writeframes(b''.join(self.frames))
+        wavfile.close()
+
+    def __del__(self):
+        self.audio.terminate()
+
